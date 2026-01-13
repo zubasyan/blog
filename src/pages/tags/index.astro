@@ -28,9 +28,8 @@ const tags = [...new Set(
   }
 </style>
 
-<BaseLayout pageTitle="私について">
-  <h2>ようこそ、私のホームページへ</h2>
-  <h2>... そして私の新しいAstroサイトについて！</h2>
+<BaseLayout pageTitle="タグ検索">
+  <h2>タグを選んで記事を検索できます。</h2>
   <div class="tags">
     {tags.map((tag) => (
     <p><a href={`/site/tags/${tag}`} class="tag">{tag}</a></p>

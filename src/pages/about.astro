@@ -11,7 +11,7 @@ const identity ={
 	hobbies: ["Tetris","競プロ","いろいろ"]
 };
 
-const skills = ["C++","Python"]
+const skills = ["C++(競プロ)","Python(いろいろ)"]
 
 const happy = true;
 const finished = true;
@@ -25,28 +25,36 @@ const textCase = "uppercase"
 
 ---
 
+<style>
+	
+	h1{
+		/*直後に横長の線を引く h3より大きくする*/
+		border-bottom: solid 4px #000;
+		padding-bottom: 0.3em;
+	}	
+	h3{
+		/*直後に横長の線を引く*/
+		border-bottom: solid 2px #000;
+		padding-bottom: 0.2em;
 
-<BaseLayout pageTitle={pageTitle}>
-		<h2>... そして私の新しいAstroサイトについて！</h2>
+	}
+</style>
 
-		<p>私はAstroの入門チュートリアルを進めています。これは私のウェブサイトの2番目のページで、自分で作った初めてのページです！</p>
+<BaseLayout >
+	<h1>私について</h1>
+	{identity.name}です。
+	{identity.hobbies.length>=2&&
+	<h3>趣味</h3>
+	<p>{identity.hobbies[0]}と{identity.hobbies[1]}です。</p>}
+	<p>ぷよぷよテトリスのテトリスの部分の場所で育ちました。</p>
+	<p><a href="https://atcoder.jp/users/zuba">atcoder</a></p>
+	<p><a href="https://codeforces.com/profile/zzuubbaa">codeforces</a></p>
 
-		<p>このサイトはチュートリアルを進めるにつれて更新されていきます。定期的にチェックして、私の旅の様子を見に来てください！</p>
-
-		<p>以下は私に関するいくつかの事実です。</p>
-		<ul>
-			<li>私の名前は{identity.name}です。</li>
-			<li>私は{identity.country}に住んでいます。</li>
-			{identity.hobbies.length>=2&&
-			<li>私の二つの趣味は{identity.hobbies[0]}と{identity.hobbies[1]}です。</li>}
-		</ul>
-		<p>スキルは以下の通りです。</p>
-		<ul>
-			{skills.map((skill) => <li class="skill">{skill}</li>)}
-		</ul>
-
-		{happy &&<p>I am happy to be learning Astro! Astroを学べて幸せです！</p>}
-		{finished && <p>私はすべてを終えました！</p>}
-		{!finished && <p>私はまだ終わっていません！</p>}
-		{goal === 3 ? <p>My goal is to finish in 3 days. 3日で終えるのが目標です。</p> : <p>My goal is not 3 days. 3日が目標ではありません。</p>}
+	<h3>使える言語（プロじゃないよ ＞_＜）</h3>
+	<ul>
+		{skills.map((skill) => <li class="skill">{skill}</li>)}
+	</ul>
+	<h1>このサイトについて</h1>
+	<p>ブログとか書いていきます。</p>
+	<p>いろいろ追加、漬物する予定です。(面白いのが出来たらいいな～っと！思います！)</p>
 </BaseLayout>
