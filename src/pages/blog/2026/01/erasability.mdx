@@ -1,0 +1,55 @@
+---
+layout: ../../../../layouts/BlogLayout.astro
+title: "【AHCテクニック】 3x3マスのグリッドの真ん中のマスを連結性を保ったまま消せるか？（消去可能性）" 
+pubDate: 2026/01/30
+category: "競技プログラミング"
+tags: ["AtCoder","解説","AHC"]
+---
+
+import ErasabilityDemo from "../../../../components/demo/erasability.astro";
+
+### 問題
+
+3x3マスのグリッドが与えられたとき、  
+「真ん中のセルを削除したときに連結性が保たれるか」を  
+判定したい。  
+(4近傍連結の場合と8近傍連結の場合の両方について)  
+
+### 解説
+グリッドを次のように表現します。  
+$$
+  \left[
+    \begin{array}{cc}
+      a & b & c \cr
+      d & e & f \cr
+      g & h & i \cr
+    \end{array}
+  \right]
+$$
+
+
+$a=1$なら黒、$a=0$ならそのマスを白とします。  
+- 4近傍連結の場合  
+$
+(上下左右で黒の数)-(角で覆っている数)  \\
+= (b+d+h+f)-(abd+bcf+dgh+hif) \\
+= 1 $  
+のときに連結性を保ったまま消せる。
+- 8近傍連結の場合  
+$(上下左右で白の数)-(角で覆っていない数)   
+\\= (\bar{b}+\bar{d}+\bar{h}+\bar{f})-(\bar{a}\bar{b}\bar{d}+\bar{b}\bar{c}\bar{f}+\bar{d}\bar{g}\bar{h}+\bar{h}\bar{i}\bar{f}) \\
+=1$  
+のときに連結性を保ったまま消せる。
+<ErasabilityDemo />
+
+※周りが全部白のときは、黒が消滅するのでNGです。  
+※周りが全部黒の時は、真ん中に新しい白が発生するのでNGです。
+### ひとりごつ
+覚えておくと便利かも？bfsだったりで毎回やるのは少し面倒ですからねぇ。
+直感的な式じゃないなーと思う。
+
+
+### 参考
+[AtCoder, "AHC024解説動画 30:15~"](https://youtu.be/LHH_rpC6hJo?t=1815)  
+消去可能性っていうらしいです。  
+[日浦慎作, "二次元画像処理"](https://vislab.jp/hiura/lec/iip/2D-image.pdf)

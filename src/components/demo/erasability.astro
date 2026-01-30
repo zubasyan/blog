@@ -1,0 +1,276 @@
+---
+const id = `erasability-${crypto.randomUUID()}`;
+const cells = Array.from({ length: 9 }, (_, index) => {
+	const row = Math.floor(index / 3);
+	const col = index % 3;
+	return { row, col, isCenter: row === 1 && col === 1 };
+});
+---
+
+<section id={id} class="erasability-demo" aria-label="3x3 グリッド連結性デモ">
+	<fieldset class="mode" aria-label="連結判定の種類">
+		<legend>---連結判定デモ---</legend>
+		<label>
+			<input type="radio" name={`mode-${id}`} value="4" checked />
+			4近傍連結
+		</label>
+		<label>
+			<input type="radio" name={`mode-${id}`} value="8" />
+			8近傍連結
+		</label>
+	</fieldset>
+	<div class="grid" role="grid" aria-label="3x3 グリッド">
+		{cells.map((cell) =>
+			cell.isCenter ? (
+				<div
+					class="cell center"
+					role="gridcell"
+					aria-label="中心セル"
+					aria-disabled="true"
+				/>
+			) : (
+				<button
+					type="button"
+					class="cell"
+					role="gridcell"
+					data-cell="surround"
+					data-row={cell.row}
+					data-col={cell.col}
+					aria-label={`セル (${cell.row + 1}, ${cell.col + 1})`}
+					aria-pressed="false"
+				/>
+			)
+		)}
+	</div>
+	<p class="status" aria-live="polite">
+		OK
+	</p>
+	<p class="formula" aria-live="polite">
+		<span class="formula-label">式の値:</span>
+		<span class="formula-value">0</span>
+	</p>
+	<p class="hint">周囲のセルをクリックして白/黒を切り替えてください。</p>
+</section>
+
+<script type="module" define:vars={{ id }}>
+	const root = document.getElementById(id);
+	if (!root) throw new Error("erasability component root not found");
+
+	const statusEl = root.querySelector(".status");
+	const formulaEl = root.querySelector(".formula");
+	const formulaValueEl = root.querySelector(".formula-value");
+	const buttons = Array.from(root.querySelectorAll("button[data-cell='surround']"));
+	const modeInputs = Array.from(root.querySelectorAll("input[name='mode-" + id + "']"));
+
+	const key = (row, col) => `${row},${col}`;
+
+	const getBlackCells = () =>
+		buttons
+			.filter((button) => button.classList.contains("is-black"))
+			.map((button) => [
+				Number(button.dataset.row ?? "0"),
+				Number(button.dataset.col ?? "0"),
+			]);
+
+	const getMode = () => {
+		const current = modeInputs.find((input) => input.checked);
+		return current?.value === "8" ? 8 : 4;
+	};
+
+	const getCellValue = (row, col) => {
+		const button = buttons.find(
+			(btn) => Number(btn.dataset.row) === row && Number(btn.dataset.col) === col
+		);
+		return button?.classList.contains("is-black") ? 1 : 0;
+	};
+
+	const calculateFormula = () => {
+		const a = getCellValue(0, 0);
+		const b = getCellValue(0, 1);
+		const c = getCellValue(0, 2);
+		const d = getCellValue(1, 0);
+		const f = getCellValue(1, 2);
+		const g = getCellValue(2, 0);
+		const h = getCellValue(2, 1);
+		const i = getCellValue(2, 2);
+		return b + d + h + f - a*b*d - b*c*f - d*g*h - h*i*f;
+	};
+
+	const calculateFormula8 = () => {
+		const a = 1 - getCellValue(0, 0);
+		const b = 1 - getCellValue(0, 1);
+		const c = 1 - getCellValue(0, 2);
+		const d = 1 - getCellValue(1, 0);
+		const f = 1 - getCellValue(1, 2);
+		const g = 1 - getCellValue(2, 0);
+		const h = 1 - getCellValue(2, 1);
+		const i = 1 - getCellValue(2, 2);
+		return b + d + h + f - a*b*d - b*c*f - d*g*h - h*i*f;
+	};
+
+	const isConnected = () => {
+		const blackCells = getBlackCells();
+		if (blackCells.length <= 1) return true;
+
+		const blackSet = new Set(blackCells.map(([row, col]) => key(row, col)));
+		const visited = new Set();
+		const stack = [blackCells[0]];
+		visited.add(key(blackCells[0][0], blackCells[0][1]));
+
+		const directions = getMode() === 8
+			? [
+				[1, 0],
+				[-1, 0],
+				[0, 1],
+				[0, -1],
+				[1, 1],
+				[1, -1],
+				[-1, 1],
+				[-1, -1],
+			]
+			: [
+				[1, 0],
+				[-1, 0],
+				[0, 1],
+				[0, -1],
+			];
+
+		while (stack.length) {
+			const [row, col] = stack.pop();
+			for (const [dr, dc] of directions) {
+				const nr = row + dr;
+				const nc = col + dc;
+				if (nr === 1 && nc === 1) continue;
+				if (nr < 0 || nr > 2 || nc < 0 || nc > 2) continue;
+				const k = key(nr, nc);
+				if (!blackSet.has(k) || visited.has(k)) continue;
+				visited.add(k);
+				stack.push([nr, nc]);
+			}
+		}
+
+		return visited.size === blackSet.size;
+	};
+
+	const updateStatus = () => {
+		if (!statusEl) return;
+		
+		const mode = getMode();
+		let isOk = false;
+		let formulaValue = 0;
+		
+		if (mode === 4) {
+			formulaValue = calculateFormula();
+			isOk = formulaValue === 1;
+		} else {
+			formulaValue = calculateFormula8();
+			isOk = formulaValue === 1;
+		}
+		
+		if (formulaEl && formulaValueEl) {
+			formulaEl.style.display = "block";
+			formulaValueEl.textContent = formulaValue.toString();
+		}
+		
+		statusEl.textContent = isOk ? "OK" : "NG";
+	};
+
+	const toggleCell = (button) => {
+		button.classList.toggle("is-black");
+		button.setAttribute("aria-pressed", button.classList.contains("is-black") ? "true" : "false");
+		updateStatus();
+	};
+
+	buttons.forEach((button) => {
+		button.addEventListener("click", () => toggleCell(button));
+	});
+
+	modeInputs.forEach((input) => {
+		input.addEventListener("change", updateStatus);
+	});
+
+	updateStatus();
+</script>
+
+<style>
+	.erasability-demo {
+		display: grid;
+		gap: 0.5rem;
+		justify-items: start;
+	}
+
+	.mode {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+		border: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.mode legend {
+		font-weight: 600;
+		margin-right: 0.5rem;
+	}
+
+	.mode label {
+		display: inline-flex;
+		gap: 0.35rem;
+		align-items: center;
+		font-size: 0.95rem;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(3, 3rem);
+		grid-template-rows: repeat(3, 3rem);
+		gap: 0.4rem;
+	}
+
+	.cell {
+		width: 3rem;
+		height: 3rem;
+		border: 2px solid #333;
+		border-radius: 0.35rem;
+		background: #fff;
+		cursor: pointer;
+		transition: background 0.2s ease, border-color 0.2s ease;
+	}
+
+	.cell.is-black {
+		background: #111;
+		border-color: #111;
+	}
+
+	.cell.center {
+		background: #bdbdbd;
+		cursor: not-allowed;
+	}
+
+	.status {
+		font-weight: 700;
+		margin: 0;
+	}
+
+	.formula {
+		margin: 0;
+		font-size: 0.95rem;
+		display: block;
+	}
+
+	.formula-label {
+		font-weight: 600;
+		margin-right: 0.5rem;
+	}
+
+	.formula-value {
+		font-weight: 700;
+		color: #0066cc;
+	}
+
+	.hint {
+		margin: 0;
+		color: #666;
+		font-size: 0.9rem;
+	}
+</style>

@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Greeting from '../components/Greeting';
 import BlogPost from '../components/BlogPost.astro';
 //最新記事5件をとる
-const allPosts = Object.values(import.meta.glob('./blog/**/*.md', { eager: true }));
+const allPosts = Object.values(import.meta.glob('./blog/**/*.{md,mdx}', { eager: true }));
 const latestPosts = allPosts
 	.sort((a: any, b: any) => new Date(a.frontmatter.pubDate).getTime() - new Date(b.frontmatter.pubDate).getTime())
 	.slice(0, Math.min(5, allPosts.length));
